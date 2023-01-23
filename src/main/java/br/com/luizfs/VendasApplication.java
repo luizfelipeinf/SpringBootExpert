@@ -1,51 +1,55 @@
 package br.com.luizfs;
 
 import br.com.luizfs.domain.entity.Cliente.Cliente;
-import br.com.luizfs.repositorio.Clientes;
+import br.com.luizfs.domain.entity.Cliente.Pedido;
+import br.com.luizfs.repository.Clientes;
+import br.com.luizfs.repository.Pedidos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @SpringBootApplication
 public class VendasApplication {
 
     @Bean
-    public CommandLineRunner init(@Autowired Clientes clientes){
+    public CommandLineRunner init(
+            @Autowired Clientes clientes,
+            @Autowired Pedidos pedidos){
         return args -> {
             System.out.println("Salvando clientes");
-            clientes.salvar(new Cliente("Dougllas"));
-            clientes.salvar(new Cliente("Outro Cliente"));
+            Cliente luiz = new Cliente("Luiz");
 
-            List<Cliente> todosClientes = clientes.obterTodos();
+            clientes.save(luiz);
+
+            Pedido p = new Pedido();
+            p.setCliente(luiz);
+            p.setDataPedido(LocalDate.now());
+            p.setTotal(BigDecimal.valueOf(100));
+
+            pedidos.save(p);
+
+            pedidos.findByCliente(luiz).forEach(System.out::println);
+
+            Cliente cliente = clientes.findClienteFetchPedido(luiz.getId());
+            System.out.println(cliente);
+            System.out.println(cliente.getPedidos());
+
+
+            List<Cliente> todosClientes = clientes.findAll();
             todosClientes.forEach(System.out::println);
 
-//            System.out.println("Atualizando clientes");
-//            todosClientes.forEach(c -> {
-//                c.setNome(c.getNome() + " atualizado.");
-//                clientes.atualizar(c);
-//            });
-//
-//            todosClientes = clientes.obterTodos();
-//            todosClientes.forEach(System.out::println);
-//
-//            System.out.println("Buscando clientes");
-//            clientes.buscarPorNome("Cli").forEach(System.out::println);
+            boolean existe = clientes.existsByNome("Luis");
+            System.out.println("existe Luis? " + existe);
 
-//            System.out.println("deletando clientes");
-//            clientes.obterTodos().forEach(c -> {
-//                clientes.deletar(c);
-//            });
+            List<Cliente> result = clientes.encontrarPorNome("Luiz");
+            result.forEach(System.out::println);
 
-//            todosClientes = clientes.obterTodos();
-//            if(todosClientes.isEmpty()){
-//                System.out.println("Nenhum cliente encontrado.");
-//            }else{
-//                todosClientes.forEach(System.out::println);
-//            }
         };
     }
     public static void main(String[] args) {
